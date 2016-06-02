@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <RingtonePreference
+        android:title="Sound"
+        android:key="alarmsoundPref"
+        android:defaultValue="true"
+        android:showSilent="true"
+        android:summary="Choose alarm sound"
+        android:ringtoneType="all"
+        />
+    <CheckBoxPreference
+        android:title="Vibrate"
+        android:defaultValue="true"
+        android:summary=""
+        android:key="vibratePref"
+        />
+    <EditTextPreference
+        android:title="Custom Timer Length"
+        android:summary="Custom timer button minutes"
+        android:numeric="integer"
+        android:maxLength="2"
+        android:key="customTimerPref"
+        />
+    <CheckBoxPreference
+        android:title="Keep Screen On"
+        android:defaultValue="false"
+        android:summary="Force the screen to stay awake while timer is running"
+        android:key="screenOnPref"
+        />
+</PreferenceScreen>

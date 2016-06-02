@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">PoseTime</string>
+    <string name="settings">Settings</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="clear">Clear</string>
+    <string name="time_30s">30s</string>
+    <string name="time_1m">1</string>
+    <string name="time_2m">2</string>
+    <string name="time_3m">3</string>
+    <string name="time_5m">5</string>
+    <string name="time_7m">7</string>
+    <string name="time_10m">10</string>
+    <string name="time_15m">15</string>
+    <string name="time_20m">20</string>
+    <string name="time_25m">25</string>
+    <string name="time_30m">30</string>
+    <string name="time_Custom">CUS</string>
+</resources>
