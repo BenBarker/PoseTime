@@ -3,6 +3,7 @@ package com.benbarker.posetime;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
@@ -13,11 +14,13 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Locale;
 
@@ -80,37 +83,37 @@ public class MainActivity extends AppCompatActivity {
 
 
         //Time values set with tag in seconds
-        Button b30s = (Button) findViewById(R.id.button30s);
+        Button b30s = findViewById(R.id.button30s);
         assert b30s != null;
         b30s.setTag(30);
-        Button b1m = (Button) findViewById(R.id.button1m);
+        Button b1m = findViewById(R.id.button1m);
         assert b1m != null;
         b1m.setTag(60);
-        Button b2m = (Button) findViewById(R.id.button2m);
+        Button b2m =  findViewById(R.id.button2m);
         assert b2m != null;
         b2m.setTag(120);
-        Button b3m = (Button) findViewById(R.id.button3m);
+        Button b3m = findViewById(R.id.button3m);
         assert b3m != null;
         b3m.setTag(180);
-        Button b5m = (Button) findViewById(R.id.button5m);
+        Button b5m = findViewById(R.id.button5m);
         assert b5m != null;
         b5m.setTag(300);
-        Button b7m = (Button) findViewById(R.id.button7m);
+        Button b7m = findViewById(R.id.button7m);
         assert b7m != null;
         b7m.setTag(420);
-        Button b10m = (Button) findViewById(R.id.button10m);
+        Button b10m =  findViewById(R.id.button10m);
         assert b10m != null;
         b10m.setTag(600);
-        Button b15m = (Button) findViewById(R.id.button15m);
+        Button b15m = findViewById(R.id.button15m);
         assert b15m != null;
         b15m.setTag(900);
-        Button b20m = (Button) findViewById(R.id.button20m);
+        Button b20m = findViewById(R.id.button20m);
         assert b20m != null;
         b20m.setTag(1200);
-        Button b25m = (Button) findViewById(R.id.button25m);
+        Button b25m = findViewById(R.id.button25m);
         assert b25m != null;
         b25m.setTag(1500);
-        Button b30m = (Button) findViewById(R.id.button30m);
+        Button b30m = findViewById(R.id.button30m);
         assert b30m != null;
         b30m.setTag(1800);
         //set the tag on the custom button based on preferences
@@ -123,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setCustomButtonValue(){
-        Button bCustom = (Button) findViewById(R.id.buttonCustom);
+        Button bCustom = findViewById(R.id.buttonCustom);
         assert bCustom != null;
 
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -138,7 +141,19 @@ public class MainActivity extends AppCompatActivity {
     public void mainButtonClick(View v) {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         boolean bScreenOn = SP.getBoolean("screenOnPref",false);
+        Resources res = getResources();
 
+        //if there's no poses left and the timer is spent and the user clicks it, reset everything
+        if((!timerRunning)&&(posesLeft == 0)){
+            Log.i("test","spent timer clicked, resetting");
+            posesLeft = maxPoses;
+            mPosesLeft.setText(posesToString(posesLeft,maxPoses));
+            freshTimer=true;
+            timerRunning=false;
+            turnButtonRed();
+        }
+
+        //Button clicked when timer isn't running and poses are left, make fresh timer and/or resume
         if ((!timerRunning)&&(posesLeft > 0)) {
             Log.i("test","starting timer");
             if (freshTimer){
@@ -149,22 +164,31 @@ public class MainActivity extends AppCompatActivity {
                 this.countDownTimer.resume();
             }
             timerRunning = true;
-            mText.getBackground().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_ATOP);
+            turnButtonGreen();
             toggleTimerButtons(false);
             if (bScreenOn) {
                 getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
-
-
-        } else {
+        }
+        //button clicked when timer running, and poses are left, so pause
+        else if (timerRunning&&(posesLeft > 0)){
             Log.i("test","pausing timer");
+            //Pause timer, turn red
             this.countDownTimer.pause();
             timerRunning = false;
-            mText.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
+            turnButtonRed();
             toggleTimerButtons(true);
-            getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+            //Pop up a toast saying it's paused
+            String toastString = res.getString(R.string.paused);
+            Toast toast=Toast.makeText(getApplicationContext(),toastString,Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER,0,0);
+            toast.show();
+
+            //Turn off "keep screen on" when paused
+            getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+
     }
 
     /**
@@ -173,14 +197,28 @@ public class MainActivity extends AppCompatActivity {
      */
     public void timeButtonClick(View v) {
         setCustomButtonValue(); //make sure this is refreshed
-        int seconds = (Integer)v.getTag();
-        Log.i("test","time button = " + seconds);
+        int seconds = (Integer) v.getTag();
+        Log.i("test", "time button = " + seconds);
         initialSeconds = seconds;
         this.countDownTimer.cancel();
         refreshTimer();
         this.countDownTimer.pause();
         timerRunning = false;
+        turnButtonRed();
+    }
+
+    /**
+     * turn main button red
+     */
+    public void turnButtonRed(){
         mText.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
+    }
+
+    /**
+     * turn main button green
+     */
+    public void turnButtonGreen(){
+        mText.getBackground().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_ATOP);
     }
 
     /**
@@ -211,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
     private void refreshTimer()
     {
         Log.i("test", "refresh counter");
+        Resources res = getResources();
         this.countDownTimer = new CountDownTimerWithPause(MainActivity.this.initialSeconds * 1000, 100, true) {
             public void onTick(long ms) {
                 long seconds = Math.round((float) ms / 1000.0f);
@@ -240,6 +279,15 @@ public class MainActivity extends AppCompatActivity {
             this.countDownTimer.create();
             toggleTimerButtons(false);
         }
+        //No more poses are left pop up a toast saying we are done
+        else if(posesLeft == 0){
+            //pop toast saying we are done
+            String toastString = res.getString(R.string.finished);
+            Toast toast=Toast.makeText(getApplicationContext(),toastString,Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER,0,0);
+            toast.show();
+            turnButtonRed();
+        }
     }
 
     /**
@@ -260,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
             return String.format(Locale.US,"%01d pose left",posesLeft);
         }
         else{
-            return String.format(Locale.US,"%01d poses done",maxPoses);
+            return String.format(Locale.US,"%01d poses complete",maxPoses);
         }
     }
 
@@ -268,18 +316,18 @@ public class MainActivity extends AppCompatActivity {
      * Enable/disable all the time preset buttons
      */
     private void toggleTimerButtons(boolean status){
-        Button b30s = (Button) findViewById(R.id.button30s);
-        Button b1m = (Button) findViewById(R.id.button1m);
-        Button b2m = (Button) findViewById(R.id.button2m);
-        Button b3m = (Button) findViewById(R.id.button3m);
-        Button b5m = (Button) findViewById(R.id.button5m);
-        Button b7m = (Button) findViewById(R.id.button7m);
-        Button b10m = (Button) findViewById(R.id.button10m);
-        Button b15m = (Button) findViewById(R.id.button15m);
-        Button b20m = (Button) findViewById(R.id.button20m);
-        Button b25m = (Button) findViewById(R.id.button25m);
-        Button b30m = (Button) findViewById(R.id.button30m);
-        Button bCustom = (Button) findViewById(R.id.buttonCustom);
+        Button b30s = findViewById(R.id.button30s);
+        Button b1m = findViewById(R.id.button1m);
+        Button b2m = findViewById(R.id.button2m);
+        Button b3m = findViewById(R.id.button3m);
+        Button b5m = findViewById(R.id.button5m);
+        Button b7m = findViewById(R.id.button7m);
+        Button b10m = findViewById(R.id.button10m);
+        Button b15m = findViewById(R.id.button15m);
+        Button b20m =  findViewById(R.id.button20m);
+        Button b25m = findViewById(R.id.button25m);
+        Button b30m = findViewById(R.id.button30m);
+        Button bCustom = findViewById(R.id.buttonCustom);
         assert b30s != null;
         b30s.setEnabled(status);
         assert b1m != null;
@@ -317,13 +365,18 @@ public class MainActivity extends AppCompatActivity {
         if (bVibrate) {
             Vibrator vibrator;
             vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            vibrator.vibrate(500);
+            if (vibrator != null){
+                vibrator.vibrate(500);
+            }
         }
 
         //Sound
         //Create an AudioManager with a special listener that only plays the sound once
         AudioManager audioManager = (AudioManager)getSystemService(AUDIO_SERVICE);
-        int volume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+        int volume= 0;
+        if (audioManager != null) {
+            volume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+        }
         Uri notificationSoundUri = Uri.parse(SP.getString("alarmsoundPref", "DEFAULT_SOUND"));
 
         MediaPlayer mediaPlayer = new MediaPlayer();

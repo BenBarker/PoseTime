@@ -16,4 +16,6 @@
     <string name="time_25m">25</string>
     <string name="time_30m">30</string>
     <string name="time_Custom">CUS</string>
+    <string name="paused">paused</string>
+    <string name="finished">all poses finished</string>
 </resources>
